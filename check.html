@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Page</title>
+</head>
+<body>
+    <div id="wrapper">
+        <div id="content">
+            <div id="divLogo">
+                <!-- Logo section -->
+            </div>
+            <form id="frmLogin" method="post" action="/index.php/auth/validateCredentials">
+                <div id="logInPanelHeading">LOGIN Panel</div>
+
+                <div id="divUsername" class="textInputContainer">
+                    <input name="txtUsername" id="txtUsername" type="text" />
+                    <span class="form-hint">Username</span>
+                </div>
+
+                <div id="divPassword" class="textInputContainer">
+                    <input name="txtPassword" id="txtPassword" type="password" />
+                    <span class="form-hint">Password</span>
+                </div>
+
+                <div id="divLoginHelpLink">
+                    <!-- Placeholder for help link -->
+                </div>
+
+                <div id="divLoginButton">
+                    <input type="submit" name="Submit" class="button" id="btnLogin" value="LOGIN" />
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
