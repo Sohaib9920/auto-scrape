@@ -1,33 +1,25 @@
+from pydantic import BaseModel
 from selenium import webdriver
-from selenium.webdriver.common.by import By
+from src.dom.service import DomService
+
+
+class PageState(BaseModel):
+    current_url: str
+    page_title: str
+    interactable_elements: str
+    selector_map: dict[int, str]
+
 
 class StateManager:
     def __init__(self, driver: webdriver.Chrome):
         self.driver = driver
+        self.dom_service = DomService(driver)
 
-    def get_current_state(self):
-        return {
-            "current_url": self.driver.current_url,
-            "interactable_elements": self.get_interactable_elements()
-        }
-    
-    def get_interactable_elements(self) -> list[dict]:
-        interactable_elements = [] 
-
-        buttons = self.driver.find_elements(By.TAG_NAME, "button")
-        for button in buttons:
-            interactable_elements.append({
-                "id": button.get_attribute("id"),
-                "class": button.get_attribute("class"),
-                "text": button.text
-            })
-
-        inputs = self.driver.find_elements(By.TAG_NAME, "input")
-        for input_field in inputs:
-            interactable_elements.append({
-                "id": input_field.get_attribute("id"),
-                "class": input_field.get_attribute("class"),
-                "placeholder": input_field.get_attribute("placeholder")
-            })
-
-        return interactable_elements
+    def get_current_state(self, only_top: bool = True) -> PageState:
+        processed_content = self.dom_service.get_current_state(only_top)
+        return PageState(
+            current_url=self.driver.current_url,
+            page_title=self.driver.title,
+            interactable_elements=processed_content.output_string,
+            selector_map=processed_content.selector_map
+        )
