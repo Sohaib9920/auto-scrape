@@ -1,0 +1,159 @@
+system:
+
+You are an AI agent that helps users navigate websites and perform actions.
+
+## Task:
+Go to directly to the url kayak.com find a flight from Zürich to Bali on 2025-04-25 with return on 2025-06-05 for 2 people.
+
+## Available actions:
+At each step, you must choose an action from the predefined set of actions in the format:  
+{name: arguments_definition}
+The available actions are:  
+{'search_google': 'text: string', 'go_to_url': 'url: string', 'done': '', 'go_back': '', 'click': 'id: int', 'input': 'id: int, text: string', 'nothing': ''}  
+
+## Input:
+The page content will be provided as numbered elements like this:
+0:<button>Click me</button>
+1:<a href="/test">Link text</a>
+2:Some visible text content 
+
+Additionally you get sequence of previous actions.
+
+## Instructions:
+- Provide your next action based on the available actions, previous actions and visible elements. 
+- Make sure to follow action's argument_definition.
+- Make sure task is completed before 'done' action.
+- Each element has a unique index that can be used to interact with it. To interact with elements, use their index number in the click() or input() actions. Make 100% sure that the index is ALWAYS present if you use the click() or input() actions.
+- Validate if previous goal was successfully achieved without violating any task requirements. If it wasn't, take the necessary next action to correct it or move closer to completing the goal.
+- Do not repeat the same action again and again. If you get stuck, try to find a new element that can help you achieve your goal or if persistent, go back or reload the page.
+- Do not interact with ADS.
+- Respond with a valid JSON object containing the action and any required parameters and your current goal of this action.
+
+## Response format:
+
+{"action": "action_name", "params": {"param_name": "param_value"}, "goal": "short description what you want to achieve", "valuation_previous_goal": "Success if completed, else short sentence of why not successful."}
+
+
+
+
+user:
+... execute action ...
+
+assistant:
+{"action":"go_to_url","params":{"url":"https://www.kayak.com/.","id":null,"text":null},"goal":"Directly navigate to Kayak website to find flights.","valuation_previous_goal":"Starting fresh with the task at hand."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":352,"text":null},"goal":"Navigate to the flights search page on Kayak to find flights from Zürich to Bali.","valuation_previous_goal":"Successfully navigated to the Kayak homepage."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"input","params":{"url":null,"id":381,"text":"Zürich"},"goal":"Input the departure city as Zürich in the flight search on Kayak.","valuation_previous_goal":"Navigated to the kayak flights page successfully."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"input","params":{"url":null,"id":383,"text":"Bali"},"goal":"Input the destination city as Bali in the flight search on Kayak.","valuation_previous_goal":"Successfully input the departure city as Zürich."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2477,"text":null},"goal":"Select Zürich from the autocomplete suggestions for the departure city.","valuation_previous_goal":"Successfully input the destination city as Bali."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2480,"text":null},"goal":"Select Denpasar, Bali, Indonesia from the autocomplete suggestions for the destination city.","valuation_previous_goal":"Successfully identified suggestions for Bali as the destination."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2560,"text":null},"goal":"Select the departure date as April 25, 2025 from the calendar.","valuation_previous_goal":"Successfully selected Denpasar, Bali, Indonesia as the destination location."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2500,"text":null},"goal":"Navigate to May 2025 in the calendar to select the return date.","valuation_previous_goal":"Successfully selected April 25, 2025 as the departure date."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2606,"text":null},"goal":"Select the return date as June 5, 2025 from the calendar.","valuation_previous_goal":"Navigated to June 2025 in the calendar view."}
+
+user:
+Elements: 2:<div aria-label="Open main navigation"></div>
+3:<a href="/" aria-label="Go to the kayak homepage"></a>
+4:<div aria-label="Open Trips drawer"></div>
+5:<div>Sign in</div>
+6:<span>Sign in</span>
+372:<div aria-haspopup="listbox" aria-expanded="false" aria-label="Trip type Round-trip">Round-trip</div>
+373:<span>Round-trip</span>
+375:<div>0 bags</div>
+376:<span>0 bags</span>
+378:<div>ISB</div>
+380:<div aria-label="Remove value"></div>
+381:<div>ZRH</div>
+383:<div aria-label="Remove value"></div>
+384:<input aria-readonly="false" aria-label="Flight origin input" aria-autocomplete="list" aria-haspopup="listbox" aria-controls="flight-origin-smarty-input-list"></input>
+385:<div aria-label="Swap departure airport and destination airport"></div>
+386:<div>Denpasar, Bali, Indonesia (DPS)</div>
+388:<div aria-label="Remove value"></div>
+390:<div aria-label="Departure">Fri 4/25</div>
+391:<span>Fri 4/25</span>
+393:<div aria-hidden="true">–</div>
+395:<div aria-label="Return">Thu 6/5</div>
+396:<span>Thu 6/5</span>
+398:<div aria-haspopup="listbox" aria-expanded="true" aria-label="Trip type">1 adult, Economy</div>
+399:<span>1 adult, Economy</span>
+401:<button aria-disabled="false" aria-label="Search"></button>
+402:<span>Save when you compare</span>
+404:<span>More deals. More sites. One search</span>
+408:<div>41,000,000+</div>
+410:<span>searches this week</span>
+412:<span>Travelers love us</span>
+414:<span>1M+ ratings on our app</span>
+2484:<div>Travelers</div>
+2486:Adults
+2487:<span>18-64</span>
+2489:<input aria-valuenow="1" aria-valuemin="1" aria-valuemax="9" aria-label="Adults"></input>
+2490:<button aria-label="Increment" aria-disabled="false"></button>
+2491:Students
+2492:<span>over 18</span>
+2494:<input aria-valuenow="0" aria-valuemin="1" aria-valuemax="8" aria-label="Students"></input>
+2495:<button aria-label="Increment" aria-disabled="false"></button>
+2496:Seniors
+2497:<span>over 65</span>
+2499:<input aria-valuenow="0" aria-valuemin="1" aria-valuemax="8" aria-label="Seniors"></input>
+2500:<button aria-label="Increment" aria-disabled="false"></button>
+2501:Youths
+2502:<span>12-17</span>
+2504:<input aria-valuenow="0" aria-valuemin="0" aria-valuemax="7" aria-label="Youths"></input>
+2505:<button aria-label="Increment" aria-disabled="false"></button>
+2506:Children
+2507:<span>2-11</span>
+2509:<input aria-valuenow="0" aria-valuemin="0" aria-valuemax="7" aria-label="Children"></input>
+2510:<button aria-label="Increment" aria-disabled="false"></button>
+2511:Toddlers in own seat
+2512:<span>under 2</span>
+2514:<input aria-valuenow="0" aria-valuemin="0" aria-valuemax="7" aria-label="Toddlers in own seat"></input>
+2515:<button aria-label="Increment" aria-disabled="false"></button>
+2516:Infants on lap
+2517:<span>under 2</span>
+2519:<input aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" aria-label="Infants on lap"></input>
+2520:<button aria-label="Increment" aria-disabled="false"></button>
+2521:<div>Cabin Class</div>
+2524:<label aria-label="Economy" aria-checked="true">Economy</label>
+2527:<label aria-label="Premium Economy" aria-checked="false">Premium Economy</label>
+2530:<label aria-label="Business" aria-checked="false">Business</label>
+2533:<label aria-label="First" aria-checked="false">First</label>
+, Url history: ['data:,', 'https://www.kayak.com/', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights']

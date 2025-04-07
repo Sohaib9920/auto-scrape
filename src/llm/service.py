@@ -20,7 +20,7 @@ class ChatCompletionResponseMessage(BaseModel):
 
 ResponseModel = TypeVar(
     "ResponseModel", bound=BaseModel
-)  # to make output class reference input class
+)  # to make output class reference input class. type[BaseModel] for both input and ouput has not reference
 
 
 class LLM:
@@ -28,7 +28,7 @@ class LLM:
         self.model = model
 
     def create_chat_completion(
-        self, messages: list[dict[str, str]], response_model: type[ResponseModel]
+        self, messages: list[dict[str, str]], response_model: ResponseModel
     ) -> ResponseModel:
 
         response = completion(

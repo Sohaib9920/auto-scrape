@@ -29,7 +29,7 @@ class DomService:
         # Traversing
         # similar to descendants except stop traversing the nodes which are not accepted
         candidate_elements: list[Tag | NavigableString] = []
-        dom_queue = list(soup.body.children)[::-1]
+        dom_queue = list(soup.body.children)[::-1] # .contents may give unexpected behaviour when modifying
         while dom_queue:
             elem = dom_queue.pop()
 
@@ -70,7 +70,7 @@ class DomService:
                 if not self._is_visible_element(xpath, top=only_top):
                     continue
                 tag_name = elem.name
-                text_content = elem.get_text(strip=True)
+                text_content = elem.get_text().strip() or ''
                 attributes = self._get_essential_attributes(elem)
                 output_string += f'{index}:<{tag_name}{" " + attributes if attributes else ""}>{text_content}</{tag_name}>\n'
 
@@ -179,27 +179,24 @@ class DomService:
         return xpath
 
     def _get_essential_attributes(self, element: Tag) -> str:
-        essential_attributes = [
+        essential_keys = [
             "id",
-            # 'class',
             "href",
-            "src",
-            "aria-label",
-            "aria-name",
-            "aria-role",
-            "aria-description",
-            "aria-expanded",
-            "aria-haspopup",
+            "src"
         ]
+        essential_prefixes = (
+            "aria-",
+        )
 
         attrs = []
-        for attr in essential_attributes:
-            if attr in element.attrs:
-                attrs.append(f'{attr}="{element[attr]}"')
+        for attr, value in element.attrs.items():
+            if attr in essential_keys or attr.startswith(essential_prefixes):
+                attrs.append(f'{attr}="{value}"')
 
         return " ".join(attrs)
 
     def _is_visible_text(self, element: NavigableString, xpath: str, top: bool) -> bool:
+        # top creates bounding box around the text node and checks if it is at the front of screen
         parent = element.parent
         index = list(parent.children).index(element)
 
@@ -230,6 +227,14 @@ class DomService:
                         rect.top < 0 || rect.top > window.innerHeight) {
                         return false;
                     }
+
+                    const middleX = rect.left + rect.width / 2;
+                    const middleY = rect.top + rect.height / 2;
+                    const topElement = document.elementFromPoint(middleX, middleY);
+
+                    if (!topElement || (!parent.contains(topElement) && !topElement.contains(parent))) {
+                        return false;
+                    }
                 }
 
                 return true;
@@ -240,10 +245,11 @@ class DomService:
             visble = self.driver.execute_script(js_code, xpath, index, top)
             return bool(visble)
         except Exception as e:
-            print(f"Error occured in top text check of {xpath}: {index}: {e}")
+            print(f"Error occured in top text check of {xpath}: {parent}: {index}: {element}: {e}")
             return False
 
     def _is_visible_element(self, xpath: str, top: bool) -> bool:
+        # top checks if element is at the front of screen and can be clicked i.e not blocked by some popup
         js_code = """
             function checkVisibleElement(xpath, top) {
                 const elem = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;

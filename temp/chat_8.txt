@@ -1,0 +1,205 @@
+system:
+
+You are an AI agent that helps users navigate websites and perform actions.
+
+## Task:
+Go to directly to the url kayak.com find a flight from Zürich to Bali on 2025-04-25 with return on 2025-06-05 for 2 people.
+
+## Available actions:
+At each step, you must choose an action from the predefined set of actions in the format:  
+{name: arguments_definition}
+The available actions are:  
+{'search_google': 'text: string', 'go_to_url': 'url: string', 'done': '', 'go_back': '', 'click': 'id: int', 'input': 'id: int, text: string', 'nothing': ''}  
+
+## Input:
+The page content will be provided as numbered elements like this:
+0:<button>Click me</button>
+1:<a href="/test">Link text</a>
+2:Some visible text content 
+
+Additionally you get sequence of previous actions.
+
+## Instructions:
+- Provide your next action based on the available actions, previous actions and visible elements. 
+- Make sure to follow action's argument_definition.
+- Make sure task is completed before 'done' action.
+- Each element has a unique index that can be used to interact with it. To interact with elements, use their index number in the click() or input() actions. Make 100% sure that the index is ALWAYS present if you use the click() or input() actions.
+- Validate if previous goal was successfully achieved without violating any task requirements. If it wasn't, take the necessary next action to correct it or move closer to completing the goal.
+- Do not repeat the same action again and again. If you get stuck, try to find a new element that can help you achieve your goal or if persistent, go back or reload the page.
+- Do not interact with ADS.
+- Respond with a valid JSON object containing the action and any required parameters and your current goal of this action.
+
+## Response format:
+
+{"action": "action_name", "params": {"param_name": "param_value"}, "goal": "short description what you want to achieve", "valuation_previous_goal": "Success if completed, else short sentence of why not successful."}
+
+
+
+
+user:
+... execute action ...
+
+assistant:
+{"action":"go_to_url","params":{"url":"https://www.kayak.com/.","id":null,"text":null},"goal":"Directly navigate to Kayak website to find flights.","valuation_previous_goal":"Starting fresh with the task at hand."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":352,"text":null},"goal":"Navigate to the flights search page on Kayak to find flights from Zürich to Bali.","valuation_previous_goal":"Successfully navigated to the Kayak homepage."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"input","params":{"url":null,"id":381,"text":"Zürich"},"goal":"Input the departure city as Zürich in the flight search on Kayak.","valuation_previous_goal":"Navigated to the kayak flights page successfully."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"input","params":{"url":null,"id":383,"text":"Bali"},"goal":"Input the destination city as Bali in the flight search on Kayak.","valuation_previous_goal":"Successfully input the departure city as Zürich."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2477,"text":null},"goal":"Select Zürich from the autocomplete suggestions for the departure city.","valuation_previous_goal":"Successfully input the destination city as Bali."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2480,"text":null},"goal":"Select Denpasar, Bali, Indonesia from the autocomplete suggestions for the destination city.","valuation_previous_goal":"Successfully identified suggestions for Bali as the destination."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2560,"text":null},"goal":"Select the departure date as April 25, 2025 from the calendar.","valuation_previous_goal":"Successfully selected Denpasar, Bali, Indonesia as the destination location."}
+
+user:
+... execute action ...
+
+assistant:
+{"action":"click","params":{"url":null,"id":2500,"text":null},"goal":"Navigate to May 2025 in the calendar to select the return date.","valuation_previous_goal":"Successfully selected April 25, 2025 as the departure date."}
+
+user:
+Elements: 2:<div aria-label="Open main navigation"></div>
+3:<a href="/" aria-label="Go to the kayak homepage"></a>
+4:<div aria-label="Open Trips drawer"></div>
+5:<div>Sign in</div>
+6:<span>Sign in</span>
+352:<span>Compare flight deals from 100s of sites</span>
+354:<span>.</span>
+356:<li>Flights</li>
+357:<a href="/flights" aria-label="Search for flights" aria-current="page"></a>
+358:<div aria-hidden="true">Flights</div>
+360:<li>Stays</li>
+361:<a href="/stays" aria-label="Search for hotels" aria-current="false"></a>
+362:<div aria-hidden="true">Stays</div>
+364:<li>Cars</li>
+365:<a href="/cars" aria-label="Search for cars" aria-current="false"></a>
+366:<div aria-hidden="true">Cars</div>
+368:<li>Packages</li>
+369:<a href="/packages" aria-label="Search for packages" aria-current="false"></a>
+370:<div aria-hidden="true">Packages</div>
+372:<div aria-haspopup="listbox" aria-expanded="false" aria-label="Trip type Round-trip">Round-trip</div>
+373:<span>Round-trip</span>
+375:<div>0 bags</div>
+376:<span>0 bags</span>
+378:<div>ISB</div>
+380:<div aria-label="Remove value"></div>
+381:<div>ZRH</div>
+383:<div aria-label="Remove value"></div>
+384:<input aria-readonly="false" aria-label="Flight origin input" aria-autocomplete="list" aria-haspopup="listbox" aria-controls="flight-origin-smarty-input-list"></input>
+385:<div aria-label="Swap departure airport and destination airport"></div>
+386:<div>Denpasar, Bali, Indonesia (DPS)</div>
+388:<div aria-label="Remove value"></div>
+390:<div aria-label="Departure">Fri 4/25</div>
+391:<span>Fri 4/25</span>
+393:<div aria-label="Return">Fri 4/25</div>
+394:<span>Fri 4/25</span>
+396:<div aria-haspopup="listbox" aria-expanded="false" aria-label="Trip type">1 adult, Economy</div>
+397:<span>1 adult, Economy</span>
+399:<button aria-disabled="false" aria-label="Search"></button>
+410:<span>Travelers love us</span>
+412:<span>1M+ ratings on our app</span>
+2482:<label aria-label="Dates" aria-checked="true">Dates</label>
+2485:<label aria-label="Weekend" aria-checked="false">Weekend</label>
+2488:<label aria-label="Month" aria-checked="false">Month</label>
+2490:<span id="e9eb57a3222b4">Departure</span>
+2492:<div aria-haspopup="listbox" aria-expanded="false" aria-labelledby="e9eb57a3222b4">exact</div>
+2495:<span id="365d55084289e">Return</span>
+2497:<div aria-haspopup="listbox" aria-expanded="false" aria-labelledby="365d55084289e">exact</div>
+2500:<div aria-label="Previous month"></div>
+2501:<div aria-label="Next Month"></div>
+2502:<table aria-multiselectable="true">May 2025SMTWTFS12345678910111213141516171819202122232425262728293031</table>
+2505:<abbr>S</abbr>
+2507:<abbr>M</abbr>
+2509:<abbr>T</abbr>
+2511:<abbr>W</abbr>
+2513:<abbr>T</abbr>
+2515:<abbr>F</abbr>
+2517:<abbr>S</abbr>
+2519:<div aria-label="May 1, 2025 Prices on this day are around average">1</div>
+2521:<div aria-label="May 2, 2025 Prices on this day are around average">2</div>
+2523:<div aria-label="May 3, 2025 Prices on this day are around average">3</div>
+2525:<div aria-label="May 4, 2025 Prices on this day are below average">4</div>
+2527:<div aria-label="May 5, 2025 Prices on this day are below average">5</div>
+2529:<div aria-label="May 6, 2025 Prices on this day are below average">6</div>
+2531:<div aria-label="May 7, 2025 Prices on this day are below average">7</div>
+2533:<div aria-label="May 8, 2025 Prices on this day are below average">8</div>
+2535:<div aria-label="May 9, 2025 Prices on this day are around average">9</div>
+2537:<div aria-label="May 10, 2025 Prices on this day are around average">10</div>
+2539:<div aria-label="May 11, 2025 Prices on this day are around average">11</div>
+2541:<div aria-label="May 12, 2025 Prices on this day are around average">12</div>
+2543:<div aria-label="May 13, 2025 Prices on this day are below average">13</div>
+2545:<div aria-label="May 14, 2025 Prices on this day are below average">14</div>
+2547:<div aria-label="May 15, 2025 Prices on this day are around average">15</div>
+2549:<div aria-label="May 16, 2025 Prices on this day are above average">16</div>
+2551:<div aria-label="May 17, 2025 Prices on this day are around average">17</div>
+2553:<div aria-label="May 18, 2025 Prices on this day are around average">18</div>
+2555:<div aria-label="May 19, 2025 Prices on this day are around average">19</div>
+2557:<div aria-label="May 20, 2025 Prices on this day are below average">20</div>
+2559:<div aria-label="May 21, 2025 Prices on this day are around average">21</div>
+2561:<div aria-label="May 22, 2025 Prices on this day are around average">22</div>
+2563:<div aria-label="May 23, 2025 Prices on this day are around average">23</div>
+2565:<div aria-label="May 24, 2025 Prices on this day are below average">24</div>
+2581:<table aria-multiselectable="true">June 2025SMTWTFS123456789101112131415161718192021222324252627282930</table>
+2584:<abbr>S</abbr>
+2586:<abbr>M</abbr>
+2588:<abbr>T</abbr>
+2590:<abbr>W</abbr>
+2592:<abbr>T</abbr>
+2594:<abbr>F</abbr>
+2596:<abbr>S</abbr>
+2598:<div aria-label="June 1, 2025 Prices on this day are around average">1</div>
+2600:<div aria-label="June 2, 2025 Prices on this day are around average">2</div>
+2602:<div aria-label="June 3, 2025 Prices on this day are around average">3</div>
+2604:<div aria-label="June 4, 2025 Prices on this day are around average">4</div>
+2606:<div aria-label="June 5, 2025 Prices on this day are around average">5</div>
+2608:<div aria-label="June 6, 2025 Prices on this day are above average">6</div>
+2610:<div aria-label="June 7, 2025 Prices on this day are below average">7</div>
+2612:<div aria-label="June 8, 2025 Prices on this day are below average">8</div>
+2614:<div aria-label="June 9, 2025 Prices on this day are below average">9</div>
+2616:<div aria-label="June 10, 2025 Prices on this day are below average">10</div>
+2618:<div aria-label="June 11, 2025 Prices on this day are below average">11</div>
+2620:<div aria-label="June 12, 2025 Prices on this day are below average">12</div>
+2622:<div aria-label="June 13, 2025 Prices on this day are around average">13</div>
+2624:<div aria-label="June 14, 2025 Prices on this day are below average">14</div>
+2626:<div aria-label="June 15, 2025 Prices on this day are around average">15</div>
+2628:<div aria-label="June 16, 2025 Prices on this day are around average">16</div>
+2630:<div aria-label="June 17, 2025 Prices on this day are below average">17</div>
+2632:<div aria-label="June 18, 2025 Prices on this day are below average">18</div>
+2634:<div aria-label="June 19, 2025 Prices on this day are around average">19</div>
+2636:<div aria-label="June 20, 2025 Prices on this day are around average">20</div>
+2638:<div aria-label="June 21, 2025 Prices on this day are around average">21</div>
+2640:<div aria-label="June 22, 2025 Prices on this day are around average">22</div>
+2642:<div aria-label="June 23, 2025 Prices on this day are around average">23</div>
+2644:<div aria-label="June 24, 2025 Prices on this day are around average">24</div>
+2646:<div aria-label="June 25, 2025 Prices on this day are around average">25</div>
+2648:<div aria-label="June 26, 2025 Prices on this day are around average">26</div>
+2650:<div aria-label="June 27, 2025 Prices on this day are above average">27</div>
+2652:<div aria-label="June 28, 2025 Prices on this day are above average">28</div>
+, Url history: ['data:,', 'https://www.kayak.com/', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights', 'https://www.kayak.com/flights']

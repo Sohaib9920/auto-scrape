@@ -8,7 +8,6 @@ import time
 
 
 class ActionParams(BaseModel):
-    query: Optional[str] = None
     url: Optional[str] = None
     id: Optional[int] = None
     text: Optional[str] = None
@@ -36,10 +35,10 @@ class BrowserActions:
         self.update_selector_map(selector_map)
 
         if action_name == "search_google":
-            if action.params and action.params.query:
-                self.search_google(action.params.query)
+            if action.params and action.params.text:
+                self.search_google(action.params.text)
             else:
-                raise Exception("Query is required for search_google action")
+                raise Exception("text is required for search_google action")
 
         elif action_name == "nothing":
             pass
@@ -64,7 +63,7 @@ class BrowserActions:
 
         elif action_name == "click":
             if action.params and action.params.id:
-                self.click_element_by_index(action.params.id)
+                self.click(action.params.id)
             else:
                 raise Exception("Id is required for click action")
 
@@ -110,7 +109,7 @@ class BrowserActions:
 
     def get_default_actions(self) -> dict[str, str]:
         return {
-            "search_google": "query: string",
+            "search_google": "text: string",
             "go_to_url": "url: string",
             "done": "",
             "go_back": "",
