@@ -1,98 +1,105 @@
 from dotenv import load_dotenv
 from src.llm.service import LLM, AvailableModel
 from src.actions.browser_actions import Action
-from tokencost import calculate_prompt_cost, count_string_tokens
+from tokencost import calculate_all_costs_and_tokens
+from src.state_manager.utils import save_conversation
 
 
 class PlaningAgent:
-    def __init__(self, task: str, default_actions: str, model: AvailableModel):
+    def __init__(self, default_actions: str, model: AvailableModel):
         load_dotenv()
         self.model = model
         self.llm = LLM(model=self.model)
         self.system_prompt = [
-            {"role": "system", "content": self.get_system_prompt(task, default_actions)}
+            {"role": "system", "content": self.get_system_prompt(default_actions)}
         ]
         self.messages = []
         self.messages_all = []
         self.input_messages = None
 
-    def chat(self, text: str, skip_call: bool = False) -> Action:
+    def chat(
+        self, text: str, skip_call: bool = False, store_conversation: str = ""
+    ) -> Action:
         input_messages = (
             self.system_prompt + self.messages + [{"role": "user", "content": text}]
         )
-        self.input_messages = input_messages
-        try:
-            # Calculate total cost for all messages
-            total_cost = calculate_prompt_cost(input_messages, self.model)
-            total_tokens = count_string_tokens(
-                " ".join([m["content"] for m in input_messages]), self.model
-            )
-            print(
-                "Total prompt cost: ",
-                f"${total_cost:,.2f}",
-                "Total tokens: ",
-                f"{total_tokens:,}",
-            )
-        except Exception as e:
-            print(f"Error calculating prompt cost: {e}")
 
         if skip_call:
-            return Action(action="nothing")
+            return Action(action='nothing', goal='', valuation_previous_goal='')
 
         response = self.llm.create_chat_completion(input_messages, Action)
 
-        pre_action_msg = {"role": "user", "content": "... execute action ..."}
-        self.messages.append(pre_action_msg)
-        self.messages_all.append(pre_action_msg)
+        if store_conversation:
+            save_conversation(
+                input_messages, response.model_dump_json(), store_conversation
+            )
 
         action_msg = {"role": "assistant", "content": response.model_dump_json()}
         self.messages.append(action_msg)
         self.messages_all.append(action_msg)
+
+        try:
+            # Calculate total cost for all messages
+            output = calculate_all_costs_and_tokens(
+                input_messages, response.model_dump_json(), self.model
+            )
+            print(
+                f'Total cost: ${output["prompt_cost"] + output["completion_cost"]:,.4f} for {output["prompt_tokens"] + output["completion_tokens"]} tokens'
+            )
+        except Exception as e:
+            print(f'Error calculating prompt cost: {e}')
 
         if len(self.messages) > 20:
             self.messages = self.messages[-20:]
 
         return response
 
-    def get_system_prompt(self, task: str, default_actions: str) -> str:
+    def add_user_prompt(self, text: str, after_system: bool = False):
+        if after_system:
+            self.system_prompt.append({"role": "user", "content": text})
+        else:
+            self.messages.append({"role": "user", "content": text})
+
+    def get_system_prompt(self, default_actions: str) -> str:
 
         output_format = """
-{"action": "action_name", "params": {"param_name": "param_value"}, "goal": "short description what you want to achieve", "valuation_previous_goal": "Success if completed, else short sentence of why not successful."}
+{"valuation_previous_goal": "Success if completed, else short sentence explaining why not successful.", "goal": "short description of what you want to achieve", "action": "action_name", "params": {"param_name": "param_value"}}
 """
 
-        AGENT_PROMPT =f"""
-You are an AI agent that helps users navigate websites and perform actions.
-
-## Task:
-{task}
+        AGENT_PROMPT = f"""
+You are an AI agent designed to assist users in navigating websites and performing actions efficiently.
 
 ## Available actions:
-At each step, you must choose an action from the predefined set of actions in the format:  
-{{name: arguments_definition}}
+At each step, you must select an action from the predefined set of actions in the format:  
+{{name: arguments_definition}}  
 The available actions are:  
 {default_actions}  
 
 ## Input:
-The page content will be provided as numbered elements like this:
-0:<button>Click me</button>
-1:<a href="/test">Link text</a>
-2:Some visible text content 
+Your input consists of all interactive elements on the current page, from which you can choose to click or input. They will be provided like this:  
+0:<button>Click me</button>  
+1:<a href="/test">Link text</a>  
+2:Some visible text content  
+(+) 3:<div>Suggested option: New York (JFK)</div>  
+(+) 4:<input type="text" value="2025-04-15" aria-label="Departure date">  
 
-Additionally you get sequence of previous actions.
+- Elements prefixed with (+) indicate they were added or modified by the previous action (e.g., (+) 3:<div>Suggested option: New York (JFK)</div>). Pay attention to these as they may be relevant to your next step.  
+- You also receive a sequence of previous actions to inform your decision-making.
 
 ## Instructions:
-- Provide your next action based on the available actions, previous actions and visible elements. 
-- Make sure to follow action's argument_definition.
-- Make sure task is completed before 'done' action.
-- Each element has a unique index that can be used to interact with it. To interact with elements, use their index number in the click() or input() actions. Make 100% sure that the index is ALWAYS present if you use the click() or input() actions.
-- Validate if previous goal was successfully achieved without violating any task requirements. If it wasn't, take the necessary next action to correct it or move closer to completing the goal.
-- Do not repeat the same action again and again. If you get stuck, try to find a new element that can help you achieve your goal or if persistent, go back or reload the page.
-- Do not interact with ADS.
-- Respond with a valid JSON object containing the action and any required parameters and your current goal of this action.
+- Determine your next action based on the available actions, previous actions, and visible elements, prioritizing (+) elements when they align with your goal.
+- After `input()` action, must select from list of suggestions if it appeared even when field's `value` attribute is filled. Check (+) elements if suggestions appeared. DO NOT move to other field before confirming one field. 
+- Before performing an action, check if any prerequisite steps (e.g., entering data before submitting, clicking a button to reveal a field) are required by the task. Address missing prerequisites first.
+- Validate whether the previous goal was achieved successfully without skipping required steps. If a step was missed, take the necessary action to correct it before proceeding.
+- For the `search_google` action, ensure the parameter is text and not a URL.
+- Each element has a unique index (e.g., 0, 1, 385). Always include the index in `click()` or `input()` actions—double-check its presence to avoid errors.
+- Avoid repeating the same action consecutively. If stuck, explore new elements that might help, or use `ask_user` for clarification.
+- Trigger the `done` action immediately upon task completion, preceded by a single `send_user_text` message to inform the user of the results.
+- Utilize `send_user_text` solely for delivering informational messages to the user. Use `ask_user` whenever user input is needed.
+- Avoid redundant use of `send_user_text` in responses.
+- Do not interact with advertisements or elements clearly marked as ads.
 
 ## Response format:
 {output_format}
-
 """
-
         return AGENT_PROMPT

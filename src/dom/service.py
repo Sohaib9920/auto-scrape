@@ -18,7 +18,7 @@ class DomService:
         self.driver = driver
 
     def get_current_state(self, only_top: bool = True) -> ProcessedDomContent:
-        html_content = self.driver.page_source  # selenium page source cont
+        html_content = self.driver.page_source
         return self._process_content(html_content, only_top)
 
     def _process_content(
@@ -70,7 +70,7 @@ class DomService:
                 if not self._is_visible_element(xpath, top=only_top):
                     continue
                 tag_name = elem.name
-                text_content = elem.get_text().strip() or ''
+                text_content = elem.get_text(strip=True, separator=" | ")
                 attributes = self._get_essential_attributes(elem)
                 output_string += f'{index}:<{tag_name}{" " + attributes if attributes else ""}>{text_content}</{tag_name}>\n'
 
@@ -179,14 +179,8 @@ class DomService:
         return xpath
 
     def _get_essential_attributes(self, element: Tag) -> str:
-        essential_keys = [
-            "id",
-            "href",
-            "src"
-        ]
-        essential_prefixes = (
-            "aria-",
-        )
+        essential_keys = ["id", "href", "src", "name", "value", "type", "placeholder"]
+        essential_prefixes = ("aria-",)
 
         attrs = []
         for attr, value in element.attrs.items():
@@ -245,7 +239,9 @@ class DomService:
             visble = self.driver.execute_script(js_code, xpath, index, top)
             return bool(visble)
         except Exception as e:
-            print(f"Error occured in top text check of {xpath}: {parent}: {index}: {element}: {e}")
+            print(
+                f"Error occured in top text check of {xpath}: {parent}: {index}: {element}: {e}"
+            )
             return False
 
     def _is_visible_element(self, xpath: str, top: bool) -> bool:

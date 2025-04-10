@@ -1,12 +1,13 @@
 import pytest
-
-from src.actions.browser_actions import BrowserActions
+import os
+from src.actions.browser_actions import ActionResult, BrowserActions
 from src.agent_interface.planing_agent import PlaningAgent
 from src.driver.service import DriverService
 from src.state_manager.state import StateManager
 import time
+from datetime import datetime
+from src.state_manager.utils import save_formatted_html
 
-from src.state_manager.utils import save_chat
 
 @pytest.fixture
 def setup():
@@ -19,25 +20,49 @@ def setup():
 
 def test_kayak_flight_search(setup):
     driver, actions, state_manager = setup
-    task = 'Go to directly to the url kayak.com find a flight from Zürich to Bali on 2025-04-25 with return on 2025-06-05 for 2 people.'
-    print(task)
-    default_actions = actions.get_default_actions()
-    agent = PlaningAgent(task=task, default_actions=default_actions, model="gpt-4o")
-    url_history = []
 
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    run_folder = f'temp/run_{timestamp}'
+    if not os.path.exists(run_folder):
+        os.makedirs(run_folder)
+           
+    task = 'Go to directly to the url kayak.com and find a flight from Zürich to (ask the user for the destination) on 2025-04-25 with return on 2025-06-05 for 2 people.'
+
+    default_actions = actions.get_default_actions()
+    print(default_actions)
+    agent = PlaningAgent(default_actions=default_actions, model="gpt-4o")
+    agent.add_user_prompt(f'Your task is: {task}', after_system=True)
+
+    url_history = []
+    previous_state = None
+    output = ActionResult()
     max_steps = 30
+
     for i in range(max_steps):
         print(f'Step {i}')
         current_state = state_manager.get_current_state()
+
+        save_formatted_html(driver.page_source, f'{run_folder}/html_{i}.html')
         url_history.append(current_state.current_url)
-        text = f'Elements: {current_state.interactable_elements}, Url history: {url_history}'
-        action = agent.chat(text)
-        save_chat(agent.input_messages, i)
-        done = actions.execute_action(action, current_state.selector_map)
-        if done:
+
+        text = f'Elements: {state_manager.get_compared_elements(current_state, previous_state)}, Url history: {url_history}'
+
+        if output.user_input:
+            agent.add_user_prompt(output.user_input)
+        if output.error:
+            text += f', Previous action error: {output.error}'
+
+        action = agent.chat(text, store_conversation=f'{run_folder}/conversation_{i}.txt')
+
+        output = actions.execute_action(action, current_state.selector_map)
+
+        if output.done:
             print('Task completed')
             break
+
+        previous_state = current_state
         time.sleep(1)
+        
     else:
         assert False, 'Failed to complete flight search task in maximum steps'
 
