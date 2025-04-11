@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 from selenium import webdriver
-from src.dom.service import DomService
+from src.dom.service import DomService, Element
 
 
 class PageState(BaseModel):
     current_url: str
     page_title: str
-    interactable_elements: str
+    interactable_elements: list[Element]
     selector_map: dict[int, str]
 
 
@@ -20,21 +20,26 @@ class StateManager:
         current_state = PageState(
             current_url=self.driver.current_url,
             page_title=self.driver.title,
-            interactable_elements=current_content.output_string,
+            interactable_elements=current_content.interactable_elements,
             selector_map=current_content.selector_map
         )
         return current_state
     
-    def get_compared_elements(self, current_state: PageState, previous_state: PageState) -> str:
+    def add_change_info(self, current_state: PageState, previous_state: PageState) -> PageState:
         if previous_state is None:
-            return current_state.interactable_elements
-        sep = "\n"
-        current_elements = current_state.interactable_elements.split(sep)
-        previous_elements_ = [e[e.find(":")+1:] for e in previous_state.interactable_elements.split(sep)]
-        compared_current_elements = []
+            return current_state
+        current_elements = current_state.interactable_elements
+        previous_elements_content = [e.content for e in previous_state.interactable_elements]
         for elem in current_elements:
-            if elem[elem.find(":")+1:] not in previous_elements_:
-                compared_current_elements.append("(+) " + elem)
-            else:
-                compared_current_elements.append(elem)
-        return sep.join(compared_current_elements)
+            if elem.content not in previous_elements_content:
+                elem.addition = True
+    
+    def add_parent_info(self, current_state: PageState):
+        selector_map = current_state.selector_map
+        xpaths = selector_map.values()
+        for elem in current_state.interactable_elements:
+            elem_xpath = selector_map[elem.index]
+            n_parents = sum(xpath in elem_xpath for xpath in xpaths if xpath != elem_xpath)
+            elem.n_parents = n_parents
+    
+

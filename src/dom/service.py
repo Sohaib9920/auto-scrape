@@ -3,8 +3,23 @@ from selenium import webdriver
 from pydantic import BaseModel
 
 
+class Element(BaseModel):
+    index: int
+    content: str
+    addition: bool = False
+    n_parents: int = 0
+
+    def get_text(self) -> str:
+        return (
+            ("(+)" if self.addition else "   ")  + 
+            f"{self.index:>4}:" + 
+            "\t"*self.n_parents + 
+            self.content
+        )
+
+
 class ProcessedDomContent(BaseModel):
-    output_string: str
+    interactable_elements: list[Element]
     selector_map: dict[int, str]
 
 
@@ -49,7 +64,7 @@ class DomService:
                 candidate_elements.append(elem)
 
         # filtering and creating selector mapping
-        output_string = ""
+        interactable_elements = []
         selector_map = {}
 
         for index, elem in enumerate(candidate_elements):
@@ -64,7 +79,7 @@ class DomService:
                     continue
                 text_content = elem.strip()
                 if text_content:
-                    output_string += f"{index}:{text_content}\n"
+                    interactable_elements.append(Element(index=index, content=text_content))
 
             else:
                 if not self._is_visible_element(xpath, top=only_top):
@@ -72,12 +87,13 @@ class DomService:
                 tag_name = elem.name
                 text_content = elem.get_text(strip=True, separator=" | ")
                 attributes = self._get_essential_attributes(elem)
-                output_string += f'{index}:<{tag_name}{" " + attributes if attributes else ""}>{text_content}</{tag_name}>\n'
+                elm_content = f'<{tag_name}{" " + attributes if attributes else ""}>{text_content}</{tag_name}>'
+                interactable_elements.append(Element(index=index, content=elm_content))
 
             selector_map[index] = xpath
 
         return ProcessedDomContent(
-            output_string=output_string, selector_map=selector_map
+            interactable_elements=interactable_elements, selector_map=selector_map
         )
 
     def _is_element_accepted(self, element: Tag) -> bool:
@@ -163,15 +179,7 @@ class DomService:
 
             position = len(current.find_previous_siblings(current.name)) + 1
             segment = f"{current.name}[{position}]"
-            id = current.attrs.get("id")
-            if id:
-                segment += f"[@id='{id}']"
-
             xpath_segments.append(segment)
-
-            if id:
-                break
-
             current = current.parent
 
         xpath = "//" + "/".join(xpath_segments[::-1])

@@ -178,3 +178,5 @@ pyrightconfig.json
 # others
 check_pydantic.ipynb
 .vscode/
+check_dom.ipynb
+temp/
