@@ -26,7 +26,7 @@ def test_kayak_flight_search(setup):
     if not os.path.exists(run_folder):
         os.makedirs(run_folder)
            
-    task = 'Go to directly to the url kayak.com and find a flight from Zürich to (ask the user for the destination) on 2025-04-25 with return on 2025-06-05 for 2 people.'
+    task = 'Go to kayak.com and find a flight from Zürich to (ask the user for the destination) on 2025-04-25 with return on 2025-06-05 for 2 people.'
 
     default_actions = actions.get_default_actions()
     print(default_actions)
@@ -40,19 +40,29 @@ def test_kayak_flight_search(setup):
 
     for i in range(max_steps):
         print(f'Step {i}')
-        current_state = state_manager.get_current_state()
+        current_state = state_manager.get_current_state(run_folder=run_folder, step=i)
 
         save_formatted_html(driver.page_source, f'{run_folder}/html_{i}.html')
         url_history.append(current_state.current_url)
 
-        text = f'Elements: {state_manager.get_compared_elements(current_state, previous_state)}, Url history: {url_history}'
+        state_manager.add_change_info(current_state=current_state, previous_state=previous_state)
+        state_manager.add_parent_info(current_state=current_state)
+        elem_text = "\n".join([e.get_text() for e in current_state.interactable_elements])
+
+        text = f'Elements:\n{elem_text}\nUrl history: {url_history}'
 
         if output.user_input:
             agent.add_user_prompt(output.user_input)
         if output.error:
-            text += f', Previous action error: {output.error}'
+            text += f'\nPrevious action error: {output.error}'
 
-        action = agent.chat(text, store_conversation=f'{run_folder}/conversation_{i}.txt')
+        action = agent.chat(
+            text, 
+            store_conversation=f'{run_folder}/conversation_{i}.txt',
+            image=current_state.screenshot
+        )
+
+        input("Press Enter to continue...")
 
         output = actions.execute_action(action, current_state.selector_map)
 

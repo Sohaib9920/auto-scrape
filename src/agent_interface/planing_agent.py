@@ -2,7 +2,8 @@ from dotenv import load_dotenv
 from src.llm.service import LLM, AvailableModel
 from src.actions.browser_actions import Action
 from tokencost import calculate_all_costs_and_tokens
-from src.state_manager.utils import save_conversation
+import decimal
+from src.state_manager.utils import save_conversation, encode_image
 
 
 class PlaningAgent:
@@ -15,17 +16,27 @@ class PlaningAgent:
         ]
         self.messages = []
         self.messages_all = []
-        self.input_messages = None
 
     def chat(
-        self, text: str, skip_call: bool = False, store_conversation: str = ""
+        self, text: str, store_conversation: str = "", image: str = ""
     ) -> Action:
+        
+        if image:
+            combined_input = [
+                {'type': 'text', 'text': text},
+                {
+                    'type': 'image_url',
+                    'image_url': {
+                        'url': f'data:image/png;base64,{encode_image(image)}',
+                    },
+                },
+            ]
+        else:
+            combined_input = [{'type': 'text', 'text': text}]
+        
         input_messages = (
-            self.system_prompt + self.messages + [{"role": "user", "content": text}]
-        )
-
-        if skip_call:
-            return Action(action='nothing', goal='', valuation_previous_goal='')
+			self.system_prompt + self.messages + [{'role': 'user', 'content': combined_input}]
+		)
 
         response = self.llm.create_chat_completion(input_messages, Action)
 
@@ -39,13 +50,28 @@ class PlaningAgent:
         self.messages_all.append(action_msg)
 
         try:
-            # Calculate total cost for all messages
             output = calculate_all_costs_and_tokens(
-                input_messages, response.model_dump_json(), self.model
-            )
-            print(
-                f'Total cost: ${output["prompt_cost"] + output["completion_cost"]:,.4f} for {output["prompt_tokens"] + output["completion_tokens"]} tokens'
-            )
+				self.system_prompt + self.messages + [{'role': 'user', 'content': text}],
+				response.model_dump_json(),
+				self.model,
+			)
+            if image:
+                # resolution 1512 x 767
+                image_cost = 0.000213
+                total_cost = (
+                    output['prompt_cost']
+                    + output['completion_cost']
+                    + decimal.Decimal(str(image_cost))
+                )
+                print(
+                    f'Text ${output["prompt_cost"]:,.4f} + Image ${image_cost:,.4f} = ${total_cost:,.4f} for {output["prompt_tokens"] + output["completion_tokens"]}  tokens'
+                )
+            else:
+                total_cost = output['prompt_cost'] + output['completion_cost']
+                print(
+                    f'Total cost: ${total_cost:,.4f} for {output["prompt_tokens"] + output["completion_tokens"]} tokens'
+                )
+
         except Exception as e:
             print(f'Error calculating prompt cost: {e}')
 

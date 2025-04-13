@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import os
+import base64
 
 
 def save_formatted_html(html_content, output_file_name):
@@ -16,12 +17,26 @@ def save_markdown(markdown_content, output_file_name):
         f.write(markdown_content)
 
 
-def save_conversation(input_messages, response, filename):
+def save_conversation(input_messages, model_output, output_file_name):
+    with open(output_file_name, 'w', encoding='utf-8') as f:
+        for message in input_messages:
+            role = message["role"]
+            content = message["content"]
+            f.write(f'{role}:\n')
+            if isinstance(content, list):
+                for msg in content:
+                    msg_type = msg["type"] 
+                    if msg_type == "image_url":
+                        f.write(f'\t{msg_type}:\n{{Image URL}}\n')
+                    else:
+                        f.write(f'\t{msg_type}:\n{msg[msg_type]}\n')
+                f.write("\n")   
+            else:
+                f.write(f'{content}\n\n')  
+        f.write(f'Model output:\n{model_output}')
 
-    text = "\n\n".join(
-        [f"{msg['role']}:\n{msg['content']}" for msg in input_messages]
-        + [f"Model output:\n{response}"]
-    )
 
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(text)
+def encode_image(image_path):
+	"""Encode image to base64 string"""
+	with open(image_path, 'rb') as image_file:
+		return base64.b64encode(image_file.read()).decode('utf-8')
