@@ -38,7 +38,7 @@ class PlaningAgent:
 			self.system_prompt + self.messages + [{'role': 'user', 'content': combined_input}]
 		)
 
-        response = self.llm.create_chat_completion(input_messages, Action)
+        response: Action = self.llm.create_chat_completion(input_messages, Action)
 
         if store_conversation:
             save_conversation(
@@ -104,11 +104,11 @@ The available actions are:
 ## Input:
 Your input consists of all interactive elements on the current page, from which you can choose to click or input. They will be provided like this:  
       0:<button>Click me</button>  
-      1:<a href="/test">Link text</a> 
-      3:    <span>Link text</span>
-      6:Some visible text content  
+      1:<a href="/test">parent link text</a> 
+      3:    <a href="/check">child link text</a>
+      _:Some visible text content  
 (+) 100:<div>Suggested option: New York (JFK)</div>  
-(+)1020:<input type="text" value="2025-04-15" aria-label="Departure date">  
+(+) 120:<input type="text" value="2025-04-15" aria-label="Departure date">  
 
 - Elements prefixed with (+) indicate they were added or modified by the previous action (e.g., (+) 3:<div>Suggested option: New York (JFK)</div>). Pay attention to these as they may be relevant to your next step.  
 - You also receive a sequence of previous actions to inform your decision-making.
