@@ -1,0 +1,7 @@
+selenium
+Selenium-Screenshot
+python-dotenv
+pydantic
+litellm
+beautifulsoup4
+pytest
