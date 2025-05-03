@@ -1,0 +1,1 @@
+Go to airbnb.com and search for accommodations in Paris from 2025-07-01 to 2025-07-10. Filter results to show only listings under $150 per night and with at least 4.5 stars rating.

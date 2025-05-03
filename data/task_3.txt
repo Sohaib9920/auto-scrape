@@ -1,0 +1,1 @@
+Go to expedia.com and book a round-trip flight from New York (JFK) to Tokyo (NRT) leaving on 2025-08-15 and returning on 2025-08-25. Choose economy class, and apply a filter for non-stop flights only.

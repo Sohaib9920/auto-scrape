@@ -1,0 +1,12 @@
+Go to kayak.com and ask the user for:
+    - Departure city
+    - Destination city
+    - Departure date
+    - Return date
+    - Number of travelers
+
+Use these inputs to find the cheapest round-trip flight available and extract:
+    - Airline name
+    - Total price
+    - Duration of each leg
+    - Number of stops.
