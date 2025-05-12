@@ -1,7 +1,8 @@
 selenium
-Selenium-Screenshot
+Selenium-Screenshot==2.1.0
 python-dotenv
 pydantic
 litellm
 beautifulsoup4
 pytest
+lxml

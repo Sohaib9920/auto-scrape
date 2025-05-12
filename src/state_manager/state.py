@@ -57,6 +57,3 @@ class StateManager:
         for elem in current_elements:
             if elem.text not in previous_elements_text:
                 elem.addition = True
-
-    
-
