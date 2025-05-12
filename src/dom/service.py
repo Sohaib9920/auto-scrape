@@ -1,27 +1,7 @@
 from bs4 import BeautifulSoup, Tag, NavigableString
 from selenium import webdriver
-from pydantic import BaseModel
 from typing import Any
-
-
-class DomContentItem(BaseModel):
-    index: int
-    text: str
-    clickable: bool
-    n_parents: int
-    addition: bool = False
-
-
-class ProcessedDomContent(BaseModel):
-	items: list[DomContentItem]
-	selector_map: dict[int, str]
-
-	def dom_items_to_string(self) -> str:
-		formatted_text = ""
-		for item in self.items:
-			indent = "\t"*item.n_parents
-			formatted_text += f"{'(+) ' if item.addition else ' '*4}{item.index if item.clickable else '_':>3}:{indent}{item.text}\n"
-		return formatted_text
+from src.dom.views import DomContentItem, ProcessedDomContent
     
 
 class DomService:
@@ -209,7 +189,9 @@ class DomService:
                 rect.width !== 0 && 
                 rect.height !== 0 &&
                 rect.top > 0 &&
-                rect.bottom < window.innerHeight
+                rect.bottom < window.innerHeight &&
+                rect.left > 0 &&
+                rect.right < window.innerWidth
             );
         }
 
@@ -221,20 +203,6 @@ class DomService:
             for (const candidate of candidates) {
                 const xpath = candidate.xpath;
                 let elem;
-
-                if (candidate.is_text) {
-                    let skip = false;
-                    for (const accepted_xpath of accepted_elem_xpaths) {
-                        if (xpath.startsWith(accepted_xpath)) {
-                            skip = true;
-                            break;              
-                        }
-                    }
-                    if (skip) {
-                        results.push(false);
-                        continue;
-                    }
-                }
 
                 if (accepted_elem_xpaths.has(xpath)) {
                     results.push(false);

@@ -176,9 +176,6 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 # others
-check_pydantic.ipynb
 .vscode/
 temp/
-check_llm.ipynb
-check_state.ipynb
-check_driver.ipynb
+dom_check.ipynb
