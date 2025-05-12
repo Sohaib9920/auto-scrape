@@ -26,10 +26,10 @@ Available actions (choose EXACTLY ONE — not 0 or 2):
 
 ## Instructions:
 - If a picture is provided, use it to understand the context and determine the next action.  
-- After an `input()` action, if a list of suggestions appears (even if the field’s `value` is already filled), you MUST select from the suggestions. Always check for (+) elements to confirm this. Do NOT move to another field before confirming the current one.  
+- After performing the input action, you MUST immediately check for suggestions (autocomplete, dropdown, etc.). If suggestions are present, you MUST select a suggestion from the list — even if the input field already has a value or a value attribute. Do not skip suggestion selection under any condition.
 - Before performing any action, verify whether prerequisite steps are needed (e.g., entering data before clicking submit, or clicking a button to reveal a field). Handle prerequisites first.  
 - Check whether the previous goal was successfully completed. If not, correct it before proceeding.  
-- Trigger the `done` action immediately upon task completion.
+- Trigger the `done` action immediately upon task completion. Provide a brief description of the result in the `text` field.
 - Do NOT interact with advertisements or elements clearly marked as ads.
 - Avoid repeating the same action again and again. If stuck, explore new elements that might help.
 

@@ -25,6 +25,9 @@ class BrowserService:
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
         chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
         chrome_options.add_experimental_option('useAutomationExtension', False)
+        chrome_options.add_argument('--disable-extensions')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-infobars')
 
         # Initialize the Chrome driver
         driver = webdriver.Chrome(options=chrome_options)
@@ -49,7 +52,7 @@ class BrowserService:
     
     def wait_for_page_load(self):
         driver = self._get_driver()
-        check_interval=0.5
+        check_interval=1
 
         def is_dom_stable(driver):
             initial_dom = driver.execute_script("return document.documentElement.outerHTML")
